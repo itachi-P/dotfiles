@@ -1,317 +1,234 @@
-" setting
-if has('vim_starting')
-  set nocompatible
-endif
+" 挙動を vi 互換ではなく、Vim のデフォルト設定にする => .vimrcが存在すれば自動的に有効化されるので設定不要
+" set nocompatible
+" 一旦ファイルタイプ関連を無効化する => vim-plugでは不要
+" filetype off
 
-if !filereadable(expand('~/.vim/autoload/plug.vim'))
-  if !executable("curl")
-    echoerr "You have to install curl or first install vim-plug yourself!"
-    execute "q!"
-  endif
-  echo "Installing Vim-Plug..."
-  echo ""
-  silent !\curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-  let g:not_finish_vimplug = "yes"
-  autocmd VimEnter * PlugInstall
-endif
+""""""""""""""""""""""""""""""
+" プラグインのセットアップ
+""""""""""""""""""""""""""""""
+call plug#begin('~/.vim/plugged')
 
-" plugin
-call plug#begin(expand('~/.vim/plugged'))
-"" space + ne -> sidebar
+" ファイルオープンを便利に
+Plug 'Shougo/unite.vim'
+" Unite.vimで最近使ったファイルを表示できるようにする
+Plug 'Shougo/neomru.vim'
+" ファイルをtree表示してくれる
 Plug 'scrooloose/nerdtree'
-Plug 'jistr/vim-nerdtree-tabs'
-"" ga -> align
-Plug 'junegunn/vim-easy-align'
-"" space + go -> exec script
-Plug 'thinca/vim-quickrun'
-Plug 'Shougo/vimproc.vim', {'do' : 'make'}
-"" gcc -> comment
-Plug 'tpope/vim-commentary'
-"" option bar
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
-"" auto bracket
-Plug 'Raimondi/delimitMate'
+" Gitを便利に使う
+Plug 'tpope/vim-fugitive'
+
+" Rails向けのコマンドを提供する
+" Plug 'tpope/vim-rails'
+" Ruby向けにendを自動挿入してくれる
+Plug 'tpope/vim-endwise'
+
+" コメントON/OFFを手軽に実行
+Plug 'tomtom/tcomment_vim'
+" シングルクオートとダブルクオートの入れ替え等
 Plug 'tpope/vim-surround'
-"" error detect
-Plug 'scrooloose/syntastic'
-Plug 'w0rp/ale'
-"" delete white space
+
+" インデントに色を付けて見やすくする
+Plug 'nathanaelkane/vim-indent-guides'
+let g:indent_guides_enable_on_vim_startup = 1
+" ログファイルを色づけしてくれる
+Plug 'vim-scripts/AnsiEsc.vim'
+" 行末の半角スペースを可視化
 Plug 'bronson/vim-trailing-whitespace'
-"" auto complete
-Plug 'sheerun/vim-polyglot'
-Plug 'Valloric/YouCompleteMe'
-Plug 'ervandew/supertab'
-"" html
-Plug 'hail2u/vim-css3-syntax'
-Plug 'gorodinskiy/vim-coloresque'
-Plug 'tpope/vim-haml'
-Plug 'mattn/emmet-vim'
-"" javascript
-Plug 'jelera/vim-javascript-syntax'
-"" php
-Plug 'arnaud-lb/vim-php-namespace'
-"" python
-Plug 'davidhalter/jedi-vim'
-Plug 'raimon49/requirements.txt.vim', {'for': 'requirements'}
-"" space + sh -> vimshell
-Plug 'Shougo/vimshell.vim'
+" less用のsyntaxハイライト
+" Plug 'KohPoll/vim-less'
+
+" RubyMineのように自動保存する
+Plug '907th/vim-auto-save'
+let g:auto_save = 1
+
+" CSVをカラム単位に色分けする
+Plug 'mechatroner/rainbow_csv'
+
+" 余談: neocompleteは合わなかった。ctrl+pで補完するのが便利
+
 call plug#end()
-filetype plugin indent on
-let mapleader="\<Space>"
 
-"" youcompleteme
-let g:ycm_server_python_interpreter = '/usr/bin/python2.7'
-let g:ycm_python_binary_path = '/usr/bin/python2.7'
-let g:ycm_auto_trigger = 1
-let g:ycm_min_num_of_chars_for_completion = 1
-let g:ycm_autoclose_preview_window_after_insertion = 1
-let g:ycm_key_list_select_completion = ['<Down>']
-let g:ycm_key_list_previous_completion = ['<Up>']
-let g:ycm_seed_identifiers_with_syntax = 1
-let g:SuperTabDefaultCompletionType = '<C-n>'
-let g:make = 'gmake'
-if exists('make')
-  let g:make = 'make'
-endif
+" filetypeの検出を有効化する => vim-plugでは不要
+" filetype plugin indent on
+""""""""""""""""""""""""""""""
 
-"" vim-airline
-let g:airline_theme = 'powerlineish'
-let g:airline#extensions#syntastic#enabled = 1
-let g:airline#extensions#branch#enabled = 1
-let g:airline#extensions#tabline#enabled = 1
-let g:airline#extensions#tagbar#enabled = 1
-let g:airline_skip_empty_sections = 1
-
-"" nerdtree
-let g:NERDTreeChDirMode=2
-let g:NERDTreeIgnore=['\.rbc$', '\~$', '\.pyc$', '\.db$', '\.sqlite$', '__pycache__']
-let g:NERDTreeSortOrder=['^__\.py$', '\/$', '*', '\.swp$', '\.bak$', '\~$']
-let g:NERDTreeShowBookmarks=1
-let g:nerdtree_tabs_focus_on_files=1
-let g:NERDTreeMapOpenInTabSilent = '<RightMouse>'
-let g:NERDTreeWinSize = 30
-let NERDTreeShowHidden=1
-set wildignore+=*/tmp/*,*.so,*.swp,*.zip,*.pyc,*.db,*.sqlite
-nnoremap <Leader>dir :NERDTreeTabsToggle<CR>
-autocmd BufWritePre * :FixWhitespace
-
-"" quickrun
-nnoremap <Leader>go :QuickRun<CR>
-let g:quickrun_config={'*': {'split': ''}}
-
-"" vim-easy-align
-xmap ga <Plug>(EasyAlign)
-nmap ga <Plug>(EasyAlign)
-
-"" vimshell
-"" nnoremap <Leader>sh :VimShellPop<CR>
-nnoremap <Leader>sh :vertical terminal<CR>
-let g:vimshell_user_prompt = 'fnamemodify(getcwd(), ":~")'
-let g:vimshell_prompt =  '$ '
-
-"" syntastic
-let g:syntastic_always_populate_loc_list=1
-let g:syntastic_error_symbol='✗'
-let g:syntastic_warning_symbol='⚠'
-let g:syntastic_style_error_symbol = '✗'
-let g:syntastic_style_warning_symbol = '⚠'
-let g:syntastic_auto_loc_list=1
-let g:syntastic_aggregate_errors = 1
-
-"" jedi-vim
-let g:jedi#popup_on_dot = 0
-let g:jedi#goto_assignments_command = "<leader>g"
-let g:jedi#goto_definitions_command = "<leader>d"
-let g:jedi#documentation_command = "K"
-let g:jedi#usages_command = "<leader>n"
-let g:jedi#rename_command = "<leader>r"
-let g:jedi#show_call_signatures = "0"
-let g:jedi#completions_command = "<C-Space>"
-let g:jedi#smart_auto_mappings = 0
-let g:jedi#force_py_version = 3
-autocmd FileType python setlocal completeopt-=preview
-
-"" syntastic
-let g:syntastic_python_checkers=['python', 'flake8']
-let g:polyglot_disabled = ['python']
-let python_highlight_all = 1
-
-"" vim-airline
-let g:airline#extensions#virtualenv#enabled = 1
-if !exists('g:airline_symbols')
-  let g:airline_symbols = {}
-endif
-if !exists('g:airline_powerline_fonts')
-  let g:airline#extensions#tabline#left_sep = ' '
-  let g:airline#extensions#tabline#left_alt_sep = '|'
-  let g:airline_left_sep          = '▶'
-  let g:airline_left_alt_sep      = '»'
-  let g:airline_right_sep         = '◀'
-  let g:airline_right_alt_sep     = '«'
-  let g:airline#extensions#branch#prefix     = '⤴' "➔, ➥, ⎇
-  let g:airline#extensions#readonly#symbol   = '⊘'
-  let g:airline#extensions#linecolumn#prefix = '¶'
-  let g:airline#extensions#paste#symbol      = 'ρ'
-  let g:airline_symbols.linenr    = '␊'
-  let g:airline_symbols.branch    = '⎇'
-  let g:airline_symbols.paste     = 'ρ'
-  let g:airline_symbols.paste     = 'Þ'
-  let g:airline_symbols.paste     = '∥'
-  let g:airline_symbols.whitespace = 'Ξ'
-else
-  let g:airline#extensions#tabline#left_sep = ''
-  let g:airline#extensions#tabline#left_alt_sep = ''
-  let g:airline_left_sep = ''
-  let g:airline_left_alt_sep = ''
-  let g:airline_right_sep = ''
-  let g:airline_right_alt_sep = ''
-  let g:airline_symbols.branch = ''
-  let g:airline_symbols.readonly = ''
-  let g:airline_symbols.linenr = ''
-endif
-
-" function
-"" xaml
-augroup MyXML
-  autocmd!
-  autocmd Filetype xml inoremap <buffer> </ </<C-x><C-o>
-  autocmd Filetype html inoremap <buffer> </ </<C-x><C-o>
-augroup END
-
-"" The PC is fast enough, do syntax highlight syncing from start unless 200 lines
-augroup vimrc-sync-fromstart
-  autocmd!
-  autocmd BufEnter * :syntax sync maxlines=200
-augroup END
-
-"" Remember cursor position
-augroup vimrc-remember-cursor-position
-  autocmd!
-  autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
-augroup END
-
-"" txt
-augroup vimrc-wrapping
-  autocmd!
-  autocmd BufRead,BufNewFile *.txt call s:setupWrapping()
-augroup END
-if !exists('*s:setupWrapping')
-  function s:setupWrapping()
-    set wrap
-    set wm=2
-    set textwidth=79
-  endfunction
-endif
-
-"" make/cmake
-augroup vimrc-make-cmake
-  autocmd!
-  autocmd FileType make setlocal noexpandtab
-  autocmd BufNewFile,BufRead CMakeLists.txt setlocal filetype=cmake
-augroup END
-
-"" python
-augroup vimrc-python
-  autocmd!
-  autocmd FileType python setlocal
-      \ formatoptions+=croq softtabstop=4
-      \ cinwords=if,elif,else,for,while,try,except,finally,def,class,with
-augroup END
-
-" shortcut leader=Space
-"" save
-nnoremap <Leader>w :w<CR>
-nnoremap <Leader>qqq :q!<CR>
-nnoremap <Leader>eee :e<CR>
-nnoremap <Leader>wq :wq<CR>
-nnoremap <Leader>nn :noh<CR>
-
-"" split
-nnoremap <Leader>s :<C-u>split<CR>
-nnoremap <Leader>v :<C-u>vsplit<CR>
-
-"" Tabs
-nnoremap <Tab> gt
-nnoremap <S-Tab> gT
-nnoremap <Leader>t :tabnew<CR>
-
-"" ignore wrap
-nnoremap j gj
-nnoremap k gk
-nnoremap <Down> gj
-nnoremap <Up> gk
-
-"" Sft + y => yunk to EOL
-nnoremap Y y$
-
-"" + => increment
-nnoremap + <C-a>
-
-"" - => decrement
-nnoremap - <C-x>
-
-"" move 15 words
-nmap <silent> <Tab> 15<Right>
-nmap <silent> <S-Tab> 15<Left>
-nmap <silent> ll 15<Right>
-nmap <silent> hh 15<Left>
-nmap <silent> jj 15<Down>
-nmap <silent> kk 15<Up>
-
-"" pbcopy for OSX copy/paste
-vmap <C-x> :!pbcopy<CR>
-vmap <C-c> :w !pbcopy<CR><CR>
-
-"" move line/word
-nmap <C-e> $
-nmap <C-a> 0
-nmap <C-f> W
-nmap <C-b> B
-imap <C-e> <C-o>$
-imap <C-a> <C-o>0
-imap <C-f> <C-o>W
-imap <C-b> <C-o>B
-
-" base
-set encoding=utf-8
-set fileencoding=utf-8
-set fileencodings=utf-8
-set bomb
-set binary
-set ttyfast
-set backspace=indent,eol,start
-set tabstop=4
-set softtabstop=0
-set shiftwidth=4
-set expandtab
-set splitright
-set splitbelow
-set hidden
-set hlsearch
-set incsearch
-set ignorecase
-set smartcase
-set nobackup
+""""""""""""""""""""""""""""""
+" 各種オプションの設定
+""""""""""""""""""""""""""""""
+" タグファイルの指定(でもタグジャンプは使ったことがない)
+set tags=~/.tags
+" スワップファイルは使わない(ときどき面倒な警告が出るだけで役に立ったことがない)
 set noswapfile
-set fileformats=unix,dos,mac
-syntax on
+" undoファイルは作成しない
+set noundofile
+" カーソルが何行目の何列目に置かれているかを表示する
 set ruler
-set number
-set gcr=a:blinkon0
-set scrolloff=3
+" コマンドラインに使われる画面上の行数
+set cmdheight=2
+" エディタウィンドウの末尾から2行目にステータスラインを常時表示させる
 set laststatus=2
-set modeline
-set modelines=10
+" ステータス行に表示させる情報の指定(どこからかコピペしたので細かい意味はわかっていない)
+set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
+" ステータス行に現在のgitブランチを表示する
+if isdirectory(expand('~/.vim/bundle/vim-fugitive'))
+  set statusline+=%{fugitive#statusline()}
+endif
+" ウインドウのタイトルバーにファイルのパス情報等を表示する
 set title
-set titleold="Terminal"
-set titlestring=%F
-set statusline=%F%m%r%h%w%=(%{&ff}/%Y)\ (line\ %l\/%L,\ col\ %c)\
-set autoread
-set noerrorbells visualbell t_vb=
-set clipboard+=unnamed,autoselect
-set mouse=a
+" コマンドラインモードで<Tab>キーによるファイル名補完を有効にする
+set wildmenu
+" 入力中のコマンドを表示する
+set showcmd
+" バックアップディレクトリの指定(でもバックアップは使ってない)
+set backupdir=$HOME/.vimbackup
+" バッファで開いているファイルのディレクトリでエクスクローラを開始する(でもエクスプローラって使ってない)
+set browsedir=buffer
+" 小文字のみで検索したときに大文字小文字を無視する
+set smartcase
+" 検索結果をハイライト表示する
+set hlsearch
+" 暗い背景色に合わせた配色にする
+set background=dark
+" タブ入力を複数の空白入力に置き換える
+set expandtab
+" 検索ワードの最初の文字を入力した時点で検索を開始する
+set incsearch
+" 保存されていないファイルがあるときでも別のファイルを開けるようにする
+set hidden
+" 不可視文字を表示する
+set list
+" タブと行の続きを可視化する
+set listchars=tab:>\ ,extends:<
+" 行番号を表示する
+set number
+" 対応する括弧やブレースを表示する
+set showmatch
+" 改行時に前の行のインデントを継続する
+set autoindent
+" 改行時に入力された行の末尾に合わせて次の行のインデントを増減する
+set smartindent
+" タブ文字の表示幅
+set tabstop=2
+" Vimが挿入するインデントの幅
+set shiftwidth=2
+" 行頭の余白内で Tab を打ち込むと、'shiftwidth' の数だけインデントする
+set smarttab
+" カーソルを行頭、行末で止まらないようにする
 set whichwrap=b,s,h,l,<,>,[,]
-highlight Pmenu ctermbg=233 ctermfg=241
-highlight PmenuSel ctermbg=233 ctermfg=166
-highlight Search ctermbg=166 ctermfg=233
+" 構文毎に文字色を変化させる
+syntax on
+" カラースキーマの指定
+colorscheme desert
+" 行番号の色
+highlight LineNr ctermfg=darkyellow
+" 勝手に改行するのを防ぐ
+" set textwidth=0
+set formatoptions=q
+" textwidthでフォーマットさせたくない
+set formatoptions=q
+" クラッシュ防止（http://superuser.com/questions/810622/vim-crashes-freezes-on-specific-files-mac-osx-mavericks）
+set synmaxcol=200
+""""""""""""""""""""""""""""""
+
+" grep検索の実行後にQuickFix Listを表示する
+autocmd QuickFixCmdPost *grep* cwindow
+
+" http://blog.remora.cx/2010/12/vim-ref-with-unite.html
+""""""""""""""""""""""""""""""
+" Unite.vimの設定
+""""""""""""""""""""""""""""""
+" 入力モードで開始する
+let g:unite_enable_start_insert=1
+" バッファ一覧
+noremap <C-P> :Unite buffer<CR>
+" ファイル一覧
+noremap <C-N> :Unite -buffer-name=file file<CR>
+" 最近使ったファイルの一覧
+noremap <C-Z> :Unite file_mru<CR>
+" sourcesを「今開いているファイルのディレクトリ」とする
+noremap :uff :<C-u>UniteWithBufferDir file -buffer-name=file<CR>
+" ウィンドウを分割して開く
+au FileType unite nnoremap <silent> <buffer> <expr> <C-J> unite#do_action('split')
+au FileType unite inoremap <silent> <buffer> <expr> <C-J> unite#do_action('split')
+" ウィンドウを縦に分割して開く
+au FileType unite nnoremap <silent> <buffer> <expr> <C-K> unite#do_action('vsplit')
+au FileType unite inoremap <silent> <buffer> <expr> <C-K> unite#do_action('vsplit')
+" ESCキーを2回押すと終了する
+au FileType unite nnoremap <silent> <buffer> <ESC><ESC> :q<CR>
+au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
+""""""""""""""""""""""""""""""
+
+" http://inari.hatenablog.com/entry/2014/05/05/231307
+""""""""""""""""""""""""""""""
+" 全角スペースの表示
+""""""""""""""""""""""""""""""
+function! ZenkakuSpace()
+  highlight ZenkakuSpace cterm=underline ctermfg=lightblue guibg=darkgray
+endfunction
+
+if has('syntax')
+  augroup ZenkakuSpace
+    autocmd!
+    autocmd ColorScheme * call ZenkakuSpace()
+    autocmd VimEnter,WinEnter,BufRead * let w:m1=matchadd('ZenkakuSpace', '　')
+  augroup END
+  call ZenkakuSpace()
+endif
+""""""""""""""""""""""""""""""
+
+" https://sites.google.com/site/fudist/Home/vim-nihongo-ban/-vimrc-sample
+""""""""""""""""""""""""""""""
+" 挿入モード時、ステータスラインの色を変更
+""""""""""""""""""""""""""""""
+let g:hi_insert = 'highlight StatusLine guifg=darkblue guibg=darkyellow gui=none ctermfg=blue ctermbg=yellow cterm=none'
+
+if has('syntax')
+  augroup InsertHook
+    autocmd!
+    autocmd InsertEnter * call s:StatusLine('Enter')
+    autocmd InsertLeave * call s:StatusLine('Leave')
+  augroup END
+endif
+
+let s:slhlcmd = ''
+function! s:StatusLine(mode)
+  if a:mode == 'Enter'
+    silent! let s:slhlcmd = 'highlight ' . s:GetHighlight('StatusLine')
+    silent exec g:hi_insert
+  else
+    highlight clear StatusLine
+    silent exec s:slhlcmd
+  endif
+endfunction
+
+function! s:GetHighlight(hi)
+  redir => hl
+  exec 'highlight '.a:hi
+  redir END
+  let hl = substitute(hl, '[\r\n]', '', 'g')
+  let hl = substitute(hl, 'xxx', '', '')
+  return hl
+endfunction
+""""""""""""""""""""""""""""""
+
+""""""""""""""""""""""""""""""
+" 最後のカーソル位置を復元する
+""""""""""""""""""""""""""""""
+if has("autocmd")
+  autocmd BufReadPost *
+        \ if line("'\"") > 0 && line ("'\"") <= line("$") |
+        \   exe "normal! g'\"" |
+        \ endif
+endif
+""""""""""""""""""""""""""""""
+
+""""""""""""""""""""""""""""""
+" 自動的に閉じ括弧を入力
+""""""""""""""""""""""""""""""
+imap { {}<LEFT>
+imap [ []<LEFT>
+imap ( ()<LEFT>
+""""""""""""""""""""""""""""""
+
+" filetypeの自動検出(最後の方に書いた方がいいらしい)
+filetype on
